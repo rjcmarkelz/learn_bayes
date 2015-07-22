@@ -1,0 +1,250 @@
+cities_mat <- cities # leave original matrix intact
+cities_mat[cities <= 1500] <- 1
+cities_mat[cities >= 1500] <- 0
+diag(cities_mat) <- 0 # we do not have to fly within each of cities :)
+cities_mat # check out the adjacency matrix
+cities_mat[cities >= 2000] <- 0
+cities_mat <- cities # leave original matrix intact
+cities_mat[cities <= 2000] <- 1
+cities_mat[cities >= 2000] <- 0
+diag(cities_mat) <- 0 # we do not have to fly within each of cities :)
+cities_mat # check out the adjacency matrix
+library(igraph) # load package
+# make sure to use the 2000 mile distance cutoff
+cities_graph2 <- graph.adjacency(cities_mat, mode = "undirected")
+plot.igraph(cities_graph2)
+cities_graph2 <- graph.adjacency(cities_mat, mode = "undirected")
+plot.igraph(cities_graph2)
+sum(cities_mat)/2 # divide by 2 because the matrix has 2 values for each edge
+cities_mat <- cities # leave original matrix intact
+cities_mat[cities <= 1500] <- 1
+cities_mat[cities >= 1500] <- 0
+diag(cities_mat) <- 0 # we do not have to fly within each of cities :)
+cities_mat # check out the adjacency matrix
+cities_graph2 <- graph.adjacency(cities_mat, mode = "undirected")
+plot.igraph(cities_graph2)
+sum(cities_mat)/2 # divide by 2 because the matrix has 2 values for each edge
+cities_mat <- cities # leave original matrix intact
+cities_mat[cities <= 2300] <- 1
+cities_mat[cities >= 2300] <- 0
+diag(cities_mat) <- 0 # we do not have to fly within each of cities :)
+cities_mat # check out the adjacency matrix
+sum(cities_mat)/2 # divide by 2 because the matrix has 2 values for each edge
+genes <- read.table("/Users/Cody_2/git.repos/BIS180L_web/data/voom_transform_brassica.csv", sep = ",", header = TRUE)
+genes <- genes[,-c(38,42,46)] # remove questionable library columns
+DE_genes <- read.table("/Users/Cody_2/git.repos/BIS180L_web/data/DEgenes_GxE.csv", sep = ",")
+DE_gene_names <- rownames(DE_genes)
+GxE_counts <- as.data.frame(genes[DE_gene_names,])
+genes_cor <- cor(t(GxE_counts)) # calculate the correlation between all gene pairs
+genes_adj <- abs(genes_cor) > 0.85
+diag(genes_adj) <- 0 # important step to set edge values of genes to themselves to 0
+sum(genes_adj)/2
+genes_adj <- abs(genes_cor) > 0.95
+diag(genes_adj) <- 0 # important step to set edge values of genes to themselves to 0
+sum(genes_adj)/2
+genes_cor <- cor(t(GxE_counts)) # calculate the correlation between all gene pairs
+genes_adj <- abs(genes_cor) > 0.95
+diag(genes_adj) <- 0 # important step to set edge values of genes to themselves to 0
+sum(genes_adj)/2
+genes_adj95 <- abs(genes_cor) > 0.95
+diag(genes_adj95) <- 0
+gene_graph95 <- graph.adjacency(genes_adj95, mode = "undirected") #convert adjacency to graph
+comps <- clusters(gene_graph95)$membership                        #define gene cluster membership
+colbar <- rainbow(max(comps)+1)                                   #define colors
+V(gene_graph95)$color <- colbar[comps+1]                          #assign colors to nodes
+plot(gene_graph95, layout = layout.fruchterman.reingold, vertex.size = 6, vertex.label = NA)
+#this one will take a little while to render
+genes_adj85 <- abs(genes_cor) > 0.85
+diag(genes_adj85) <- 0
+gene_graph85 <- graph.adjacency(genes_adj85, mode = "undirected")
+comps <- clusters(gene_graph85)$membership
+colbar <- rainbow(max(comps)+1)
+V(gene_graph85)$color <- colbar[comps+1]
+plot(gene_graph85, layout=layout.fruchterman.reingold, vertex.size=6, vertex.label=NA)
+graph.density(gene_graph85)
+average.path.length(gene_graph85)
+cities_mat <- cities # leave original matrix intact
+cities_mat[cities <= 1500] <- 1
+cities_mat[cities >= 1500] <- 0
+diag(cities_mat) <- 0 # we do not have to fly within each of cities :)
+cities_mat # check out the adjacency matrix
+graph.density(cities_mat)
+cities_graph2 <- graph.adjacency(cities_mat, mode = "undirected")
+graph.density(cities_graph2)
+average.path.length(cities_graph2)
+setwd()
+libary(ibmq)
+library(ibmq)
+library(iBMQ)
+data(sno)
+data(snp)
+data(gene)
+head(sno)
+head(snp)
+str(snp)
+str(gene)
+PPA <- eqtlMcmc(snp, gene, n.iter = 100, burn.in = 100, n.sweep = 20, mc.cores = 6,
+RIS = TRUE)
+data(gene)
+str(gene)
+data(snppos)
+data(genepos)
+eqtltype <- eqtlClassifier(eqtl, snppos, genepos,1000000)
+cutoff <- calculateThreshold(PPA, 0.1)
+eqtl <- eqtlFinder(PPA, cutoff)
+head(eqtl)
+dim(eqtl)
+eqtltype <- eqtlClassifier(eqtl, snppos, genepos,1000000)
+hotspot <- hotspotFinder(eqtltype, 10)
+?hotspotFinder
+head(eqtl)
+eqtltype
+PPA
+str(PPA)
+head(eqtl)[,1:10]
+head(eqtl)[1:10]
+str(PPA)
+cutoff <- calculateThreshold(PPA, 0.1)
+eqtl <- eqtlFinder(PPA, cutoff)
+head(eqtl)[1:10]
+eqtltype <- eqtlClassifier(eqtl, snppos, genepos,1000000)
+?hotspotFinder
+hotspot <- hotspotFinder(eqtltype, 10)
+eqtltype
+eqtltype <- eqtlClassifier(eqtl, snppos, genepos,1000000)
+head(eqtltype)
+?eqtlMcmc
+cutoff
+dim(eqtl)
+?eqtlMcmc
+str(PPA)
+head(PPA)
+str(gene)
+dim(PPA)
+head(eqtl)[1:10]
+dim(eqtl)
+head(eqtl)
+unique(eqtl$Gene)
+dim(eqtl)
+write.table(goldStandardMatrix, "final_exam_gene_network.csv", sep = ",")
+load('~/git.repos/teaching/data/final_network.RData')
+ls
+ls()
+library(igraph)
+cities_graph2 <- graph.adjacency(final_network, mode = "undirected")
+library(DREAM4)
+data(dream4_100_01)
+expressionData <- assays(dream4_100_01)$simulated
+names(exptData(dream4_010_01))
+goldStandardMatrix <- exptData(dream4_100_01)$goldStandardAdjacencyMatrix
+expressionData
+cities_graph2 <- graph.adjacency(goldStandardMatrix, mode = "undirected")
+plot.igraph(cities_graph2)
+goldStandardMatrix <- exptData(dream4_100_01)$goldStandardAdjacencyMatrix
+str(goldStandardMatrix)
+final_network <- goldStandardMatrix
+save(final_network, file = "final_network.RData")
+library(sybilDynFBA)
+data(Ec_core)
+lowbnd(Ec_core)[react_id(Ec_core)=='EX_glc(e)']=-10;
+lowbnd(Ec_core)[react_id(Ec_core)=='EX_o2(e)']=-18;
+Ec_df <- dynamicFBA(Ec_core,substrateRxns={'EX_glc(e)'},initConcentrations=40,initBiomass=.035,timeStep=.25,nSteps=20,verbose=3)
+Ec_df
+library(sybil)
+mp <- system.file(package = "sybil", "extdata")
+mp
+library(sybil)
+mp <- system.file(package = "sybil", "extdata")
+mp
+mod <- readTSVmod(prefix = "Ec_core", fpath = mp, quoteChar = "\"")
+mod
+ex <- findExchReact(Ec_core)
+mod <- readTSVmod(prefix = "Ec_core", fpath = mp, quoteChar = "\"")
+mod
+data(Ec_core)
+ex <- findExchReact(Ec_core)
+ex
+upt <- uptReact(ex)
+upt
+mod <- changeBounds(Ec_core, ex[c("EX_glc(e)", "EX_lac_D(e)")], lb = c(0, -10))
+findExchReact(mod)
+optL <- optimizeProb(Ec_core, algorithm = "fba", retOptSol = FALSE)
+optL
+ex
+mod <- changeBounds(Ec_core, ex[c("EX_glc(e)", "EX_lac_D(e)")], lb = c(0, -10))
+findExchReact(mod)
+library(sybilDynFBA)
+data(Ec_core)
+lowbnd(Ec_core)[react_id(Ec_core)=='EX_glc(e)']=-10;
+data(Ec_core)
+Ec_df <- dynamicFBA(Ec_core,substrateRxns={'EX_glc(e)'},initConcentrations=40,initBiomass=.035,timeStep=.25,nSteps=20,verbose=3)
+class(Ec_core)
+ls()
+library(sybilDynFBA)
+data(Ec_core)
+class(Ec_core)
+Ec_df <- dynamicFBA(Ec_core,substrateRxns={'EX_glc(e)'},initConcentrations=40,initBiomass=.035,timeStep=.25,nSteps=20,verbose=3)
+str(Ec_core)
+data(Ec_core)
+lowbnd(Ec_core)[react_id(Ec_core)=='EX_glc(e)']=-10;
+lowbnd(Ec_core)[react_id(Ec_core)=='EX_o2(e)']=-18;
+class(Ec_core)
+str(Ec_core)
+library(sybil)
+data(Ec_core)
+class(Ec_core)
+str(Ec_core)
+Ec_core
+Ec_core$mod_key
+Ec_core@mod_key
+install.packages("plantecophys")
+library(plantecophys)
+library(qtl)
+setwd("~/git.repos/brassica_meta_analysis/Cleaned_data/")
+field_traits <- read.cross("csvsr", genfile ="Brassica_F8_v2.1_gen.csv",
+phefile="all_traits_RQTL.csv", genotypes=c("AA","BB"), na.strings = c("-", "NA"))
+head(field_traits)
+library(qtlbim)
+brassica_traits_qb <- field_traits
+brassica_traits_qb <- qb.genoprob(brassica_traits_qb, step=2, stepwidth = "variable")
+summary(brassica_traits_qb)
+brassica_traits_qb_leaflength <- qb.mcmc(brassica_traits_qb, pheno.col = 2, seed = 1616, epistasis = TRUE)
+other_HDI <- qb.hpdone(brassica_traits_qb_leaflength, effects = "estimate")
+str(other_HDI)
+other_HDI
+hist(brassica_traits_qb$pheno$abbiomass)
+ph_names <- names(brassica_traits_qb$pheno)
+ph_names
+hist(brassica_traits_qb$pheno$LeafLnUN)
+hist(brassica_traits_qb$pheno$LeafLnUN)
+?qb.hpdone
+?qb.mcmc
+brassica_traits_qb_leaflength <- qb.mcmc(brassica_traits_qb, pheno.col = 2, rancov = 1, seed = 1616, epistasis = TRUE)
+plot(brassica_traits_qb_leaflength)
+qbModeltest <- qb.model(brassica_traits_qb, chr.nqtl = rep(3,nchr(brassica_traits_qb)), intcov = 1,
+interval = rep(10,3))
+qbModeltest <- qb.model(brassica_traits_qb, epistatis = TRUE, main.nqtl = 5, intcov = 1,
+interval = NULL)
+qbModeltest
+library(bayess)
+data(normaldata)
+library(bayess)
+data(normaldata)
+shift <- normaldata[,2]
+shift
+hist(shift, nclass = 10, col = "steelblue", prob = TRUE, main = "")
+n = length(shift)
+mmu = sum(shift)(n + 1)
+mmu = sum(shift)/(n + 1)
+mmu
+vmu = 0.75^2/(n + 1); vmu
+mtmu = sum(shift)/(n + 1)
+mtmu = sum(shift)/(n + 1); mtmu
+stmu = (2+(n-1)*var(shift))/((n+2)*(n+1)); stmu
+install.packages("mnormt")
+library(mnormt)
+curve(dmt(x, mean = mmu, S = stmu, df = n + 2), col = "chocolate2", lwd = 2, xlab = "x", ylab = "", xlim=c(-.5,.5))
+curve(dnorm(x, mean = mmu, sd = sqrt(vmu)), col = "steelbue2", lwd = 2, add = TRUE, lty = 2)
+setwd("/Users/Cody_2/git.repos/bayes_R/scripts")
+curve(dnorm(x, mean = mmu, sd = sqrt(vmu)), col = "steelblue2", lwd = 2, add = TRUE, lty = 2)
+library(LearnBayes)
