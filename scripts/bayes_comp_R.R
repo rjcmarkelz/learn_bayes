@@ -195,6 +195,159 @@ dist
 covprob = 0.9
 discint(dist, covprob)
 
+## Chapter 3
+## Known means but unknown variance
+data(footballscores)
+
+d = footballscores$favorite - footballscores$underdog - footballscores$spread
+n = length(d)
+v = sum(d^2)
+
+# simulate draws from the chisquared dist 
+P = rchisq(1000, n )/v
+s = sqrt(1/P)
+hist(s ,main = "") # take a look at the simulated sample standard deviation of game outcomes
+# and point spreads
+
+quantile(s, probs = c(0.025, 0.5, 0.975))
+
+# hospital example
+alpha = 16; beta = 15174; # these are the priors on the gamma distribution
+yobs = 1; ex = 66 # this hospital has one death in 66 heart transplants
+y = 1:10 # predictive density after observing 10 more heart transplants
+lam = alpha/beta
+py = dpois(y, lam*ex)*dgamma(lam, shape = alpha, rate = beta)/dgamma(lam, shape = alpha + y, rate = beta + ex)
+cbind(y, round(py, 3))
+
+# we can simulate the posterior density
+lambdaA = rgamma(1000, shape = alpha + yobs, rate = beta + ex)
+hist(lambdaA)
+
+# now lets take a look at another hospital with more surgeries 
+ex = 1767; yobs = 4
+y = 0:10
+
+py = dpois(y, lam*ex)*dgamma(lam, shape = alpha, rate = beta)/dgamma(lam, shape = alpha + y, rate = beta + ex)
+cbind(y, round(py, 3))
+
+lambdaB = rgamma(1000, shape = alpha + yobs, rate = beta + ex)
+
+# now take a look at the comparisons between the prior and posterior of each hospital where the first 
+# hospital has less experience with surgeries, while the second hospital has much more experience
+# you will see that for hospital 2 there is less influence of the prior.
+
+par(mfrow = c(2, 1))
+plot(density(lambdaA), main = "HOSPITAL A", xlab = "lambdaA", lwd = 3)
+curve(dgamma(x, shape = alpha, rate = beta), add = TRUE)
+legend("topright", legend = c("prior", "posterior", lwd = c(1,3)))
+
+
+plot(density(lambdaB), main = "HOSPITAL B", xlab = "lambdaB", lwd = 3)
+curve(dgamma(x, shape = alpha, rate = beta), add = TRUE)
+legend("topright", legend = c("prior", "posterior", lwd = c(1,3)))
+
+mu = 100
+tau = 12.16
+sigma = 15
+n = 4
+se = sigma/sqrt(n)
+ybar = c(110, 125, 140) # observed IQ test scores
+tau1 = 1/sqrt(1/se^2 + 1/tau^2)
+mu1 = (ybar/se^2 + mu/tau^2)* tau1^2
+summ1 = cbind(ybar, mu1, tau1)
+summ1
+
+# choose another prior with the same median, 100, but from a t distribution
+tscale = 20/qt(0.95, 2)
+tscale
+
+# compare the normal vs. the t dist, notice the t density has sig flatter tails
+par(mfrow= c(1, 1))
+curve(1/tscale*dt((x - mu)/tscale, 2), 
+	from = 60, to = 140, xlab = "theta", ylab = "Prior Density")
+curve(dnorm(x, mean = mu, sd = tau), add = TRUE, lwd = 3)
+legend("topright", legend = c("t density", "normal density"), lwd = c(1, 3))
+
+# use the discrete distribution to compute the posterior mean and posterior sd
+
+norm.t.compute = function(ybar){
+	theta = seq(60, 180, length = 500)
+	like  = dnorm(theta, mean = ybar, sd = sigma/sqrt(n))
+	prior = dt((theta - mu)/tscale, 2)
+	post  = prior*like
+	post  = post/sum(post)
+	m     = sum(theta * post)
+	s     = sqrt(sum(theta^2 * post) - m^2)
+	c(ybar, m, s)
+}
+
+summ2 = t(sapply(c(110, 125, 140), norm.t.compute))
+summ2
+#      [,1]     [,2]      [,3]
+# [1,]  110 78.58024 1.4010641
+# [2,]  125 78.96803 1.0361267
+# [3,]  140 79.19416 0.8179035
+
+dimnames(summ2)[[2]] = c("ybar", "mu1 t", "tau1 t")
+summ2
+cbind(summ1, summ2) # compare the posteriors for each of the prior distributions
+
+theta = seq(60, 180, length = 500)
+normpost = dnorm(theta, mu1[3], tau1)
+normpost = normpost/sum(normpost)
+plot(theta, normpost, type = "l", lwd = 3, ylab = "Post Density")
+like = dnorm(theta, mean = 140, sd = sigma/sqrt(n))
+prior = dt((theta - mu)/tscale, 2)
+tpost = prior * like / sum(prior * like)
+lines(theta, tpost)
+legend("topright", legend = c("t prior", "normal prior"), lwd = c(1, 3))
+
+# 3.5 mixtures of conjugate priors- example is the coin is biased
+probs = c(.5, .5)
+beta.par1 = c(6, 14)
+beta.par2 = c(14, 6)
+
+betapar = rbind(beta.par1, beta.par2)
+data = c(7, 3)
+post = binomial.beta.mix(probs, betapar, data)
+post
+
+# the prior contains 2 humps on the data
+curve(post$probs[1]*dbeta(x, 13, 17) + post$probs[2]*dbeta(x, 21, 9), 
+	from = 0, to = 1, lwd = 3, xlab = "P", ylab = "DENSITY")
+curve(.5*dbeta(x, 6, 12) + .5*dbeta(x, 12, 6), 0, 1, add = TRUE) #
+legend("topleft", legend = c("Prior", "posterior"), lwd = c(1,3))
+
+# test if coin is fair given data
+pbinom(5, 20, 0.5)
+
+n = 20; y = 5; a = 10; p = 0.5
+m1 = dbinom(y, n , p)* dbeta(p, a, a)/dbeta(p, a + y, a + n - y)
+lambda = dbinom(y, n , p )/(dbinom(y, n, p ) + m1)
+lambda
+pbetat(p, .5, c(a, a), c(y, n - y))
+
+prob.fair = function(log.a){
+	a = exp(log.a);
+	m2 = dbinom(y, n , p)* dbeta(p, a, a)/dbeta(p, a + y, a + n - y);
+	dbinom(y, n, p)/(dbinom(y, n, p) + m2)
+}
+
+n = 20; y = 5; p = 0.5; 
+curve(prob.fair(x), from = -4, to = 5, xlab = "log a", ylab = "Prob(coin is fair)", lwd = 2)
+# this cannot be interpreted that the pvalue is the probability of fairness
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
