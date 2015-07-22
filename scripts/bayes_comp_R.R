@@ -337,19 +337,61 @@ n = 20; y = 5; p = 0.5;
 curve(prob.fair(x), from = -4, to = 5, xlab = "log a", ylab = "Prob(coin is fair)", lwd = 2)
 # this cannot be interpreted that the pvalue is the probability of fairness
 
+# Chapter 4
+# normal data with both parameters unknown, mean and variance
+data(marathontimes)
+head(marathontimes)
+
+#set up the grid
+d = mycontour(normchi2post, c(220, 330, 500, 9000), marathontimes$time, xlab = "mean", ylab = "variance" )
+S = sum((marathontimes$time - mean(marathontimes$time))^2)
+n = length(marathontimes$time)
+sigma2 = S/rchisq(1000, n - 1)
+mu = rnorm(1000, mean = mean(marathontimes$time), sd = sqrt(sigma2)/sqrt(n))
+
+points(mu, sigma2)
+quantile(mu, c(0.025, 0.975)) # means
+quantile(sqrt(sigma2), c(0.025, 0.975)) # SD
+
+# Dirichlet distribution for presidentail elections
+alpha = c(728, 548, 138)
+theta = rdirichlet(1000, alpha)
+hist(theta[, 1] - theta[, 2], main = "") # compare bush vs. dukakis
+
+# compare obama vs. mccain
+data(election.2008)
+head(election.2008)
+attach(election.2008)
+
+prob.Obama = function(j){
+	p = rdirichlet(5000, 500*c(M.pct[j], O.pct[j], 100 - M.pct[j] - O.pct[j])/100 + 1)
+	mean(p[,2]>p[,1])
+}
+Obama.win.probs = sapply(1:51, prob.Obama)
+
+#now using a simulation of a biased coin
+sim.election = function(){
+	winner = rbinom(51, 1, Obama.win.probs)
+	sum(EV*winner)
+}
+sim.EV = replicate(1000, sim.election())
+
+hist(sim.EV, min(sim.EV):max(sim.EV), col = "blue")
+abline(v = 365, lwd = 3)
+text(375, 30, "Actual \n Obama \n total")
 
 
+x = c(-0.86, -0.3, -0.05, 0.73)
+n = c(5, 5, 5, 5)
+y = c(0, 1, 3, 5)
 
+data = cbind(x, n , y)
+response = cbind(y, n - y)
+results = glm(response ~ x, family = binomial)
+summary(results)
 
-
-
-
-
-
-
-
-
-
+# we want to put priors on this
+beta.select(list(p = .5, x = .2), list(p = .9, x = .5))
 
 
 
