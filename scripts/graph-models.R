@@ -283,3 +283,35 @@ learn(g1, data1)
 # this is where hyper parameters come into play to bound prob between 0 and 1
 
 
+# EM Algorithm
+# latent variable models
+# can use domain knowledge to write models
+
+# Chapter 4 bayesian models
+library(MASS)
+Sigma <- matrix(c(10,3,3,2), 2, 2)
+x1 <- mvrnorm(100, c(1,2), Sigma)
+x2 <- mvrnorm(100, c(-1,-2), Sigma)
+plot(x1, col = 2, xlim = c(-5,5), ylim = c(-5, 5))
+points(x2, col = 3)
+# to classify this data we need a non-linear seperator
+# naive bayes classifier
+# already implemented in this package
+install.packages("e1071")
+library(e1071)
+data(iris)
+
+?naiveBayes
+model <- naiveBayes(Species~., data = iris)
+model
+# note need to apply laplace smoothing of the data if model is not balanced
+p <- predict(model, iris)
+hitrate <- sum(p == iris$Species)/nrow(iris)
+
+#randomly sample data from dataset
+ni <- sample(1:nrow(iris), 2*nrow(iris)/3)
+no <- setdiff(1:nrow(iris), ni)
+
+model <- naiveBayes(Species~., data = iris[ni,])
+p <- predict(model, iris[no, ])
+plot(p)
