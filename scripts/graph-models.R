@@ -315,3 +315,58 @@ no <- setdiff(1:nrow(iris), ni)
 model <- naiveBayes(Species~., data = iris[ni,])
 p <- predict(model, iris[no, ])
 plot(p)
+
+# beta-binomial
+x <- seq(1, 20)
+# parameter varying from 0.1 to 0.5
+plot(x, dbinom(x, 20, 0.5), t = 'b', col = 1, ylim = c(0, 0.3))
+lines(x, dbinom(x, 20, 0.3), t = 'b', col = 2)
+lines(x, dbinom(x, 20, 0.1), t = 'b', col = 3)
+
+# prior distribution
+# beta distribution is conjugate to binomial and bernoulli distributions
+# this will ensure that the posterior on theta is also Beta-distributed
+
+# gaussian mixture model
+# first example of latent variable model
+# this takes advantage of the factor that data tends to group into clusters,
+# aggregating depending on underlying meaning
+
+# three mvnorm data sets with two dimensions
+# equal number of points per cluster
+N <- 400 
+X <- list(
+    mvrnorm(N, c(1,1), matrix(c(1, -0.5, -0.5, 1), 2, 2)/4),
+    mvrnorm(N, c(3,3), matrix(c(2, 0.5, 0.5, 1), 2, 2)/4),
+    mvrnorm(N, c(5,5), matrix(c(1, -0.5, -0.5, 4), 2, 2)/4))
+
+plot(0, 0 , xlim = c(-1,7), ylim = c(-1,7), type = 'n')
+for(i in 1:3)
+    points(X[[i]], pch = 18, col = 1 + i)
+
+install.packages("mixtools")
+library(mixtools)
+
+x <- do.call(rbind, X) #transform X into a matrix
+head(x)
+model2 <- mvnormalmixEM(x, verb = TRUE)
+model3 <- mvnormalmixEM(x, k = 3, verb = TRUE)
+
+plot(model2, xlim = c(0,50), ylim = c(-4000, -3000))
+par(new=TRUE)
+plot(model3, xlim = c(0,50), ylim = c(-4000, -3000))
+model3$lambda
+
+X <- list(
+    mvrnorm(100, c(1,1), matrix(c(1,-0.5,-0.5,1),2,2)/4),
+    mvrnorm(200, c(3,3), matrix(c(2,0.5,0.5,1),2,2)/4),
+    mvrnorm(300, c(5,5), matrix(c(1,-0.5,-0.5,4),2,2)/4))
+x <- do.call(rbind,X)
+
+model3_2 <- mvnormalmixEM(x, k = 3, verb = TRUE)
+plot(model3, which = 2) # can ID all three sets
+plot(model2, which = 2) # can ID only 2 groups!
+plot(model3_2, which = 2) # very similar to model3
+
+
+
