@@ -73,3 +73,31 @@ net2 <- setEvidence(net, evidence = list(light_bulb = "bad"))
 
 querygrain(net2, nodes = c("machine"))
 # same as above coded by hand!
+
+
+# variable elimination for following graph model
+dag2 <- dag(~B:A + B:C + B:D)
+dag2
+plot(dag2)
+
+#P(A,B,C,D)
+A <- matrix(c(0.8, 0.2), 2, 1)
+t(A)
+t(B)
+B <- matrix(c(0.6, 0.4, 0.3, 0.7), 2, 2)
+C <- matrix(c(0.5, 0.5, 0.8, 0.8), 2, 2)
+D <- matrix(c(0.3, 0.7, 0.4, 0.6), 2, 2)
+# conditional distributions
+B
+
+# marginalize out A to obtain P(B,C,D)
+Bs <- t(A) %*% t(B)
+Bs
+# marginalize out B to obtain P(C,D)
+Cs <- Bs %*% t(C)
+
+# marginalize out C to leave D
+Ds <- Cs %*% t(D)
+Ds #typo in book
+
+
