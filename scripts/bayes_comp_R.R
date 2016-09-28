@@ -392,6 +392,21 @@ summary(results)
 
 # we want to put priors on this
 beta.select(list(p = .5, x = .2), list(p = .9, x = .5))
+beta.select(list(p = .5, x = .8), list(p = .9, x = .98))
+
+prior = rbind(c(-0.7, 4.68, 1.12), 
+	c(0.6, 2.10, 0.74))
+data.new = rbind(data, prior)
+mycontour(logisticpost, c(-3, 3, -1, 9), data.new, xlab = "beta0")
+s = simcontour(logisticpost, c(-2, 3, -1, 11), data.new, 1000)
+points(s)
+plot(density(s$y), xlab = "beta1")
+
+theta = -s$x/s$y
+hist(theta, xlab = "LD-50", breaks = 20)
+
+sigma = c(2, 1, .5, .25)
+plo   = 0.0001; phi = .9999
 
 
 
