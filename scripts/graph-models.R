@@ -456,4 +456,49 @@ p <- function(x) dgamma(x, 2)
 q <- function(x) dexp(x, 0.5)
 rq <- function(x) rexp(1, 0.5)
 
+#Monte-Carlo Sampling
+library(MASS)
+bigauss <- mvrnorm(50000, mu = c(0, 0), Sigma = matrix(c(1, .1, .1, 1), 2))
+biggauss_estimate <- kde2d(bigauss[,1], bigauss[,2], n = 50)
+contour(biggauss_estimate, nlevels = 6, lty = 2)
 
+L <- 1000
+smallcov <- matrix(c(.1, .01, .01, .1), 2)
+x <- c(0,0)
+for(i in 1:L){
+    x2 <- mvrnorm(1, mu = x, Sigma = smallcov)
+    lines(c(x[1],x2[1]), c(x[2],x2[2]), t='p',pch=20)
+    x <- x2
+}
+
+# starts in the sampling distribution, but then all over the place!
+
+p <- function(x){
+    dnorm(x, 0, 1)
+}
+
+mh <- function(x, alpha){
+    xt <- runif(1, x-alpha, x+ alpha)
+    if(runif(1) > p(xt)/p(x))
+        xt <- x
+
+    return(xt)
+}
+
+sampler <- function(L, alpha){
+    x <- numeric(L)
+    for(i in 2:L)
+        x[i] <- mh(x[i-1], alpha)
+
+    return(x)
+}
+
+par(mfrow = c(2,2))
+for(l in c(10, 100, 1000, 10000)){
+    hist(sampler(l, 1), main=paste(l,"iterations"),breaks=50,freq=F,xlim=c(-4,4),ylim=c(0,1))
+    lines(x0, p(x0))
+}
+
+Sys.setenv(MAKEFLAGS = "-j4")
+install.packages("rstan", dependencies = TRUE)
+library(rstan)
