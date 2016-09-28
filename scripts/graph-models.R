@@ -100,4 +100,52 @@ Cs <- Bs %*% t(C)
 Ds <- Cs %*% t(D)
 Ds #typo in book
 
+# junction tree example using binary variables
+dag3 <- dag(~C:F + E:F + A:C + D:E + B:A + B:D)
+dag3
+plot(dag3)
 
+val <- c("true", "false")
+F <- cptable(~F, values = c(10, 90), levels = val)
+C <- cptable(~C|F, values = c(10, 90, 20, 80), levels = val)
+E <- cptable(~E|F, values = c(50, 50, 30, 70), levels = val)
+A <- cptable(~A|C, values = c(50, 50, 70, 30), levels = val)
+D <- cptable(~D|E, values = c(60, 40, 70, 30), levels = val)
+B <- cptable(~B|A:D, values = c(60, 40, 70, 30, 20, 80, 10, 90), levels = val)
+B
+
+plist <- compileCPT(list(F,E,C,A,D,B))
+plist
+
+# check distribution
+print(plist$F)
+print(plist$B)
+
+# create the graph
+jtree <- grain(plist)
+jtree
+plot(jtree)
+
+querygrain(jtree, nodes = c("F"), type = "marginal")
+querygrain(jtree, nodes = c("C"), type = "marginal")
+querygrain(jtree, nodes = c("B"), type = "marginal")
+
+# complex distribution
+querygrain(jtree, nodes = c("A","B"), type = "marginal")
+
+# now we observe a variable 
+jtree2 <- setEvidence(jtree, evidence = list(F = "true"))
+querygrain(jtree, nodes = c("F"), type = "marginal")
+querygrain(jtree2, nodes = c("F"), type = "marginal")
+
+# any joint marginal once we observe one F
+#knowing what F is changes the marginal on A
+querygrain(jtree, nodes = c("A"), type = "marginal")
+querygrain(jtree2, nodes = c("A"), type = "marginal")
+
+jtree3 <- setEvidence(jtree, evidence = list(F = "true", A = "false"))
+
+#knowing F and A changes marginal on C
+querygrain(jtree, nodes = c("C"), type = "marginal")
+querygrain(jtree2, nodes = c("C"), type = "marginal")
+querygrain(jtree3, nodes = c("C"), type = "marginal")
