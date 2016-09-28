@@ -368,5 +368,92 @@ plot(model3, which = 2) # can ID all three sets
 plot(model2, which = 2) # can ID only 2 groups!
 plot(model3_2, which = 2) # very similar to model3
 
+# Chapter 5- approximate inference
+# need to get around computing the distribution at each step 
+# also need to be able to work with models that have many dimensions
+ 
+q <- function(x) dnorm(x, 0, 0.5) # centered on 0
+rq <- function(x) rnorm(1, 0, 0.5)
+
+# target distribution is a mixture of Gaussians with two components
+p <- function(x) 0.6*dnorm(x, 0, 0.1) + 0.4*dnorm(x, 0.6, 0.2)
+
+# N number of samples
+# k coefficient of proposal distribution
+# p distribution to estimate
+# q proposal distribution
+# rq sampler of the proposal distribution
+rejection <- function(N, k, p, q, rq){
+    accept <- logical(N)
+    x <- numeric(N)
+
+    for(i in 1:N){
+        z0 <- rq() # draw a point from proposal distribution
+        u0 <- runif(1, 0, 1) # draw one point from uniform
+
+        if(u0 < p(z0)/(k*q(z0))) # rejection test
+            accept[i] <- TRUE
+        else accept[i] <- FALSE
+
+        x[i] <- z0
+    }
+    data.frame(x = x, accept = accept)
+}
+
+set.seed(600)
+k <- 3.1 # scaling factor k
+x <- rejection(100, k, p, q, rq)
+head(x)
+
+# now with 5000 samples
+x <- rejection(50000, k, p, q, rq)
+hist(x$x[x$accept],freq=F,breaks=200,col='grey')
+lines(t,p(t),col=2,lwd=2)
+
+# proposal distribution
+hist(x$x,freq=F,breaks=200,col='grey')
+lines(t,q(t),col=2,lwd=2)
+
+# therefore running the algorithm for longer will improve the results
+# yeah the samples converge to the target distribution!
+
+# importance sampling
+# N number of samples
+# f function we want to know the expectation of
+# p this is the target distribution function
+# this is the proposal distrubution function
+# rq this is the sampler from the proposal distrubutions
+
+
+importance <- function(N, f, p, q, rq){
+    x <- sapply(1:N, rq) # sample from proposal distrubution
+
+    A <- sum((f(x)*p(x))/q(x)) # numerator
+    B <- sum(p(x)/q(x)) # denominator
+
+    return(A/B)
+}
+
+set.seed(600)
+
+# mixture of guassian approximated by gaussian
+q <- function(x) dnorm(x, 0, 0.5) # centered on 0
+rq <- function(x) rnorm(1, 0, 0.5)
+p <- function(x) 0.6*dnorm(x, 0, 0.1) + 0.4*dnorm(x, 0.6, 0.2)
+print(importance(1000,identity,p,q,rq))
+print(importance(10000,identity,p,q,rq))
+print(importance(50000,identity,p,q,rq))
+# with importance sampling we need fewer samples than rejection sampling
+# to approximate 
+
+# students t-distribution
+p <- function(x) dt(x, 2)
+q <- function(x) dnorm(x, 0, 1.5)
+rq <- function(x) rnorm(x, 0, 1.5)
+
+# Gamma distribution
+p <- function(x) dgamma(x, 2)
+q <- function(x) dexp(x, 0.5)
+rq <- function(x) rexp(1, 0.5)
 
 
